@@ -11,7 +11,7 @@ const HEADERS     = {
   'User-Agent':    'mail-officee-3656-panel/1.0',
 };
 
-function githubGet() {
+async function githubGet() {
   const res = await fetch(GITHUB_API, { method:'GET', headers: HEADERS });
   if (!res.ok) throw new Error(`GitHub GET ${res.status}`);
   const data = await res.json();
