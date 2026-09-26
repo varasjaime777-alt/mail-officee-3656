@@ -1,0 +1,9 @@
+{
+  "name": "mail-officee-3656",
+  "version": "1.0.0",
+  "description": "Panel login Microsoft-style con Discord, geo IP, panel admin",
+  "scripts": {
+    "deploy": "vercel --prod --force"
+  },
+  "dependencies": {}
+}
